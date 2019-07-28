@@ -67,8 +67,10 @@ public class TaskListDriver {
 		    break;
 		}
 
+
 	    } catch (InputMismatchException e) {
 		System.out.println("Please enter one of the values on the options menu.");
+		userInput.nextLine();
 		continue;
 	    }
 	}
