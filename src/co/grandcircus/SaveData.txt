@@ -1,0 +1,5 @@
+Peter Parker/2019-08-11/Find all 55 backpacks/true
+Peter Parker/2019-08-11/Photograph all NYC Landmarks!/false
+Peter Parker/2019-08-11/Take down all of Fisk's Hideouts/false
+Peter Parker/2019-08-11/Take down all Demon hideouts/false
+Peter Parker/2019-08-11/Find all the pigeons/false

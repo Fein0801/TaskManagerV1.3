@@ -60,7 +60,6 @@ public class TaskListDriver {
 		    break;
 		case 6:
 		    run = quit(userInput);
-//		    run = false;
 		    break;
 		default:
 		    System.out.println("Invalid Input.");
@@ -362,6 +361,7 @@ public class TaskListDriver {
 		writer.close();
 	    } else {
 		saveFile.createNewFile();
+//		saveData(saveFile, taskList);  // Might cause issues
 	    }
 	} catch (IOException e) {
 	    System.out.println("Error saving to file \"" + SAVE_FILE_NAME + "\".");
