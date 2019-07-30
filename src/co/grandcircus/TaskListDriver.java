@@ -128,8 +128,12 @@ public class TaskListDriver {
 	String taskListHeader = Task.getTaskListHeader();
 	System.out.println(String.format("%-9s", "Task #") + taskListHeader);
 	for (int i = 0; i < list.size(); i++) {
-	    String taskNumber = String.format("%-9s", Integer.toString(i + 1));
-	    System.out.println(taskNumber + list.get(i));
+	    try {
+		String taskNumber = String.format("%-9s", Integer.toString(i + 1));
+		System.out.println(taskNumber + list.get(i));
+	    } catch (NullPointerException e) {
+		list.remove(i);
+	    }
 	}
 	System.out.println("\n");
     }

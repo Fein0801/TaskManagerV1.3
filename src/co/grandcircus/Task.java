@@ -39,7 +39,7 @@ public class Task {
     }
 
     public void setTeamMember(String teamMember) throws NameLengthException {
-	if (teamMember.length() > MAX_NAME_SIZE) {
+	if (teamMember.length() > MAX_NAME_SIZE || teamMember.contains("/")) {
 	    throw new NameLengthException();
 	}
 	this.teamMember = teamMember;
@@ -66,7 +66,7 @@ public class Task {
     }
 
     public void setDescription(String description) throws NameLengthException {
-	if (description.length() > MAX_DESCRIPTION_SIZE) {
+	if (description.length() > MAX_DESCRIPTION_SIZE || description.contains("/")) {
 	    throw new NameLengthException();
 	}
 	this.description = description;
