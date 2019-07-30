@@ -1,9 +1,0 @@
-Peter Parker/2019-08-11/Photograph all NYC Landmarks!/false
-Peter Parker/2019-08-11/Take down all of Fisk's Hideouts/false
-Peter Parker/2019-08-11/Take down all Demon hideouts/false
-Peter Parker/2019-08-11/Find all the pigeons/false
-Antonella Solomon/2019-07-29/Teach inheritance/true
-Antonella Solomon/2019-07-30/Teach abstract classes, enums, and interfaces/false
-Antonella Solomon/2019-07-31/Teach file IO/false
-Ben Feinstein/2019-08-01/Enjoy his birthday!/false
-Kris Cherven/2019-08-01/Enjoy his birthday/false
