@@ -47,30 +47,74 @@ public class TaskListDriver {
 		    printTaskList(taskList);
 		    break;
 		case 2:
-		    addTask(userInput, taskList);
+		    printTasksByTeamMember(userInput, taskList);
 		    break;
 		case 3:
-		    deleteTask(userInput, taskList);
+		    addTask(userInput, taskList);
 		    break;
 		case 4:
-		    markTask(userInput, taskList);
+		    deleteTask(userInput, taskList);
 		    break;
 		case 5:
-		    editTask(userInput, taskList);
+		    markTask(userInput, taskList);
 		    break;
 		case 6:
+		    editTask(userInput, taskList);
+		    break;
+		case 7:
+		    printTasksByDate(userInput, taskList);
+		    break;
+		case 8:
 		    run = quit(userInput);
 		    break;
 		default:
-		    System.out.println("Invalid Input.");
+		    System.out.println("Please enter one of the values on the options menu.");
 		    break;
 		}
 
-
 	    } catch (InputMismatchException e) {
-		System.out.println("Please enter one of the values on the options menu.");
+		System.out.println("Invalid input.");
 		userInput.nextLine();
 		continue;
+	    }
+	}
+    }
+
+    private static void printTasksByDate(Scanner userInput, ArrayList<Task> taskList) {
+	if (taskList.isEmpty()) {
+	    System.out.println("The task list is empty.");
+	    return;
+	}
+
+	boolean valid = false;
+	while (!valid) {
+	    System.out.println("What date should I show all tasks before?");
+	    String input = userInput.nextLine();
+	    String date = parseDueDate(input);
+
+	    if (!date.equals("")) {
+
+		if (date.contains("/")) {
+		    System.out.println("Tasks due before " + date + ":");
+		    date = Task.convertDateFormat(date);
+		} else {
+		    System.out.println("Tasks due before " + Task.convertDateFormat(date) + ":");
+		}
+		LocalDate dueDate;
+		try {
+		    dueDate = LocalDate.parse(date);
+		} catch (DateTimeParseException e) {
+		    date = Task.convertDateFormat(date);
+		    dueDate = LocalDate.parse(date);
+		}
+		valid = true;
+		for (Task t : taskList) {
+		    if (t.getDueDate().isBefore(dueDate) || t.getDueDate().isEqual(dueDate)) {
+			System.out.println(t);
+		    }
+		}
+	    } else {
+		System.out.println("Invalid date format.");
 	    }
 	}
     }
@@ -88,6 +132,50 @@ public class TaskListDriver {
 	    System.out.println(taskNumber + list.get(i));
 	}
 	System.out.println("\n");
+    }
+
+    private static void printTasksByTeamMember(Scanner userInput, ArrayList<Task> taskList) {
+	if (taskList.isEmpty()) {
+	    System.out.println("The task list is empty.");
+	    return;
+	}
+
+	ArrayList<String> names = new ArrayList<String>();
+
+	for (Task task : taskList) {
+	    String name = task.getTeamMember();
+	    if (!names.contains(name)) {
+		names.add(name);
+	    }
+	}
+
+	String[] namesArr = new String[names.size()];
+	System.out.println("Team members: ");
+
+	for (int i = 0; i < names.size(); i++) {
+	    namesArr[i] = names.get(i);
+	}
+
+	for (String tempName : namesArr) {
+	    System.out.println(tempName);
+	    names.remove(tempName);
+	    tempName = tempName.toLowerCase();
+	    names.add(tempName);
+	}
+
+	String name = "";
+	while (!names.contains(name.toLowerCase())) {
+	    System.out.println("Whose tasks would you like to display? (Enter one of the names above)");
+	    name = userInput.nextLine();
+	}
+
+	for (Task task : taskList) {
+	    if (task.getTeamMember().equalsIgnoreCase(name)) {
+		System.out.println(task);
+	    }
+	}
+
+	System.out.println();
     }
 
     private static void addTask(Scanner userInput, ArrayList<Task> list) {
@@ -210,22 +298,24 @@ public class TaskListDriver {
     }
 
     private static boolean quit(Scanner userInput) {
-        String response = "";
-        while (!response.equalsIgnoreCase("yes") && !response.equalsIgnoreCase("no")) {
-            System.out.println("Are you sure you would like to quit? (yes/no)");
-            response = userInput.next();
-        }
-        return !response.equalsIgnoreCase("yes");
+	String response = "";
+	while (!response.equalsIgnoreCase("yes") && !response.equalsIgnoreCase("no")) {
+	    System.out.println("Are you sure you would like to quit? (yes/no)");
+	    response = userInput.next();
+	}
+	return !response.equalsIgnoreCase("yes");
     }
 
     private static void printOptions() {
 	System.out.println("Options:");
-	System.out.println("\t1. List Tasks");
-	System.out.println("\t2. Add task");
-	System.out.println("\t3. Delete task");
-	System.out.println("\t4. Mark task as complete");
-	System.out.println("\t5. Edit task");
-	System.out.println("\t6. Quit");
+	System.out.println("\t1. List ALL tasks");
+	System.out.println("\t2. List tasks by team member");
+	System.out.println("\t3. Add task");
+	System.out.println("\t4. Delete task");
+	System.out.println("\t5. Mark task as complete");
+	System.out.println("\t6. Edit task");
+	System.out.println("\t7. List tasks before date");
+	System.out.println("\t8. Quit");
     }
 
     private static void saveData(File saveFile, ArrayList<Task> taskList) {
@@ -234,7 +324,7 @@ public class TaskListDriver {
 	    if (saveFile.exists()) {
 		FileWriter writer = new FileWriter(saveFile);
 		for (Task task : taskList) {
-		    writer.write(task.getSaveDataString() + "\n");
+		    writer.write(task.getSaveDataString() + "\r\n");
 		}
 		writer.close();
 	    } else {
@@ -264,140 +354,138 @@ public class TaskListDriver {
 	}
     }
 
+    // This method proves that bigger is not always better
     private static void editTask(Scanner userInput, ArrayList<Task> taskList) {
-        if (taskList.isEmpty()) {
-            System.out.println("Task list empty. No entries to edit.");
-            return;
-        }
-    
-        boolean run = true;
-        do {
-            System.out.println("Which task number would you like to edit?");
-            try {
-        	int choice = userInput.nextInt();
-        	Task task = taskList.get(choice - 1);
-    
-        	String edit = "";
-        	while (!edit.equalsIgnoreCase("yes") && !edit.equalsIgnoreCase("no")) {
-        	    System.out.println(Task.getTaskListHeader());
-        	    System.out.println(task);
-        	    System.out.println("Edit this task? (yes/no)");
-        	    edit = userInput.next();
-        	    System.out.println();
-        	    userInput.nextLine();
-        	}
-    
-        	if (edit.equalsIgnoreCase("yes")) {
-        	    run = false;
-        	    String[] options = { "team member", "due date", "description", "completion status", "delete" };
-        	    System.out.println("What would you like to change?");
-        	    boolean valid = false;
-        	    while (!valid) {
-        		System.out.print("(Please enter ");
-        		for (int index = 0; index < options.length; index++) {
-        		    System.out.print("\"" + options[index] + "\"");
-        		    if (index < options.length - 1) {
-        			System.out.print(" or ");
-        		    }
-        		}
-        		System.out.println(")");
-    
-        		String selection = userInput.nextLine().toLowerCase();
-    
-        		
-        		
-        		
-        		switch (selection) {
-        		case "team member":
-    
-        		    System.out.println("Please enter the new name: ");
-        		    selection = userInput.nextLine();
-        		    try {
-        			task.setTeamMember(selection);
-        			System.out.println("Team member name set!");
-        			valid = true;
-        		    } catch (NameLengthException e) {
-        			System.out.println("Name is too long.");
-        		    }
-        		    break;
-    
-        		case "due date":
-    
-        		    System.out.println("Please enter the new due date: ");
-        		    selection = userInput.nextLine();
-        		    task.setDueDate(parseDueDate(selection));
-        		    System.out.println("New due date set!");
-        		    valid = true;
-        		    break;
-    
-        		case "description":
-    
-        		    System.out.println("Please enter the new description: ");
-        		    selection = userInput.nextLine();
-        		    try {
-        			task.setDescription(selection);
-        			System.out.println("New description set!");
-        			valid = true;
-        		    } catch (NameLengthException e) {
-        			System.out.println("Name is too long.");
-        		    }
-        		    break;
-    
-        		case "completion status":
-    
-        		    if (!task.isCompleted()) {
-        			task.markCompleted();
-        			valid = true;
-        			System.out.println("Marked task complete!");
-        		    } else {
-        			while (!selection.equalsIgnoreCase("yes") && !selection.equalsIgnoreCase("no")) {
-        			    System.out
-        				    .println("Do you want to change the completion status to false? (yes/no)");
-        			    selection = userInput.next();
-        			}
-    
-        			if (selection.equalsIgnoreCase("yes")) {
-        			    valid = true;
-        			    task.resetCompletion();
-        			    System.out.println("Completion reset.");
-        			}
-        		    }
-        		    break;
-    
-        		case "delete":
-    
-        		    String delete = "";
-        		    while (!delete.equalsIgnoreCase("yes") && !delete.equalsIgnoreCase("no")) {
-        			System.out.println(Task.getTaskListHeader());
-        			System.out.println(task);
-        			System.out.println("Delete this task? (yes/no)");
-        			delete = userInput.next();
-        			System.out.println();
-        		    }
-        		    if (delete.equalsIgnoreCase("yes")) {
-        			valid = true;
-        			taskList.remove(task);
-        			System.out.println("Task deleted!");
-        		    } else {
-        			valid = true;
-        			System.out.println("Task was not deleted.");
-        		    }
-        		    break;
-    
-        		}
-        	    }
-        	    System.out.println("Task edited.");
-        	} else {
-        	    run = false;
-        	    System.out.println("Task was not edited.");
-        	}
-            } catch (InputMismatchException e) {
-        	System.out.println("Please enter a whole number.");
-            } catch (IndexOutOfBoundsException e) {
-        	System.out.println("Please enter a number between 1 and " + taskList.size());
-            }
-        } while (run);
-    
+	if (taskList.isEmpty()) {
+	    System.out.println("Task list empty. No entries to edit.");
+	    return;
+	}
+
+	boolean run = true;
+	do {
+	    System.out.println("Which task number would you like to edit?");
+	    try {
+		int choice = userInput.nextInt();
+		Task task = taskList.get(choice - 1);
+
+		String edit = "";
+		while (!edit.equalsIgnoreCase("yes") && !edit.equalsIgnoreCase("no")) {
+		    System.out.println(Task.getTaskListHeader());
+		    System.out.println(task);
+		    System.out.println("Edit this task? (yes/no)");
+		    edit = userInput.next();
+		    System.out.println();
+		    userInput.nextLine();
+		}
+
+		if (edit.equalsIgnoreCase("yes")) {
+		    run = false;
+		    String[] options = { "team member", "due date", "description", "completion status", "delete" };
+		    System.out.println("What would you like to change?");
+		    boolean valid = false;
+		    while (!valid) {
+			System.out.print("(Please enter ");
+			for (int index = 0; index < options.length; index++) {
+			    System.out.print("\"" + options[index] + "\"");
+			    if (index < options.length - 1) {
+				System.out.print(" or ");
+			    }
+			}
+			System.out.println(")");
+
+			String selection = userInput.nextLine().toLowerCase();
+
+			switch (selection) {
+			case "team member":
+
+			    System.out.println("Please enter the new name: ");
+			    selection = userInput.nextLine();
+			    try {
+				task.setTeamMember(selection);
+				System.out.println("Team member name set!");
+				valid = true;
+			    } catch (NameLengthException e) {
+				System.out.println("Name is too long.");
+			    }
+			    break;
+
+			case "due date":
+
+			    System.out.println("Please enter the new due date: ");
+			    selection = userInput.nextLine();
+			    task.setDueDate(parseDueDate(selection));
+			    System.out.println("New due date set!");
+			    valid = true;
+			    break;
+
+			case "description":
+
+			    System.out.println("Please enter the new description: ");
+			    selection = userInput.nextLine();
+			    try {
+				task.setDescription(selection);
+				System.out.println("New description set!");
+				valid = true;
+			    } catch (NameLengthException e) {
+				System.out.println("Name is too long.");
+			    }
+			    break;
+
+			case "completion status":
+
+			    if (!task.isCompleted()) {
+				task.markCompleted();
+				valid = true;
+				System.out.println("Marked task complete!");
+			    } else {
+				while (!selection.equalsIgnoreCase("yes") && !selection.equalsIgnoreCase("no")) {
+				    System.out
+					    .println("Do you want to change the completion status to false? (yes/no)");
+				    selection = userInput.next();
+				}
+
+				if (selection.equalsIgnoreCase("yes")) {
+				    valid = true;
+				    task.resetCompletion();
+				    System.out.println("Completion reset.");
+				}
+			    }
+			    break;
+
+			case "delete":
+
+			    String delete = "";
+			    while (!delete.equalsIgnoreCase("yes") && !delete.equalsIgnoreCase("no")) {
+				System.out.println(Task.getTaskListHeader());
+				System.out.println(task);
+				System.out.println("Delete this task? (yes/no)");
+				delete = userInput.next();
+				System.out.println();
+			    }
+			    if (delete.equalsIgnoreCase("yes")) {
+				valid = true;
+				taskList.remove(task);
+				System.out.println("Task deleted!");
+			    } else {
+				valid = true;
+				System.out.println("Task was not deleted.");
+			    }
+			    break;
+
+			}
+		    }
+		    System.out.println("Task edited.");
+		} else {
+		    run = false;
+		    System.out.println("Task was not edited.");
+		}
+	    } catch (InputMismatchException e) {
+		System.out.println("Please enter a whole number.");
+	    } catch (IndexOutOfBoundsException e) {
+		System.out.println("Please enter a number between 1 and " + taskList.size());
+	    }
+	} while (run);
+
     }
 
 }

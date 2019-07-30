@@ -80,6 +80,7 @@ public class Task {
 	return completed;
     }
 
+    @Override
     public String toString() {
 	StringBuffer buff = new StringBuffer();
 	buff.append(formatSpaces());
