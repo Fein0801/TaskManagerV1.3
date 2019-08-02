@@ -1,10 +1,14 @@
 package co.grandcircus;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -13,21 +17,18 @@ import java.util.Scanner;
 
 public class TaskListDriver {
 
-    private static final String SAVE_FILE_NAME = "src/co/grandcircus/SaveData.txt";
+    private static final String FILE_NAME = "SaveData.txt";
 
     public static void main(String[] args) {
 	Scanner userInput = new Scanner(System.in);
-	File saveFile = new File(SAVE_FILE_NAME);
 	ArrayList<Task> taskList = new ArrayList<>();
 	try {
-	    retrieveSaveData(saveFile, taskList);
-	} catch (FileNotFoundException e) {
-	    System.out.println("No save data found. Moving on.");
+	    taskList = readFromFile();
 	} catch (DateTimeParseException e) {
 	    System.out.println("Could not load save data.");
 	}
 	runTaskManager(userInput, taskList);
-	saveData(saveFile, taskList);
+	writeToFile(taskList);
 	System.out.println("Goodbye.");
 	userInput.close();
     }
@@ -322,43 +323,59 @@ public class TaskListDriver {
 	System.out.println("\t8. Quit");
     }
 
-    private static void saveData(File saveFile, ArrayList<Task> taskList) {
-	System.out.println("Saving data...");
+    private static ArrayList<Task> readFromFile() {
+	ArrayList<Task> list = new ArrayList<Task>();
+	String fileName = FILE_NAME;
+	Path path = Paths.get(fileName);
+
+	File file = path.toFile();
+
+	BufferedReader br = null;
 	try {
-	    if (saveFile.exists()) {
-		FileWriter writer = new FileWriter(saveFile);
-		for (Task task : taskList) {
-		    writer.write(task.getSaveDataString() + "\r\n");
-		}
-		writer.close();
-	    } else {
-		saveFile.createNewFile();
-//		saveData(saveFile, taskList);  // Might cause issues
+	    br = new BufferedReader(new FileReader(file));
+	    String line = br.readLine();
+
+	    while (line != null) {
+		Task t = new Task(line);
+		list.add(t);
+
+		line = br.readLine();
 	    }
+	    br.close();
+
+	} catch (FileNotFoundException e) {
+	    System.out.println("error reading from save file");
 	} catch (IOException e) {
-	    System.out.println("Error saving to file \"" + SAVE_FILE_NAME + "\".");
+	    System.out.println();
 	}
-	System.out.println("Finished saving data.");
+
+	return list;
+
     }
 
-    private static void retrieveSaveData(File saveFile, ArrayList<Task> taskList) throws FileNotFoundException {
-	if (saveFile.exists()) {
-	    Scanner fileInput = new Scanner(new FileReader(saveFile));
-	    while (fileInput.hasNextLine()) {
-		String input = fileInput.nextLine();
-		taskList.add(new Task(input));
+    public static void writeToFile(ArrayList<Task> list) {
+	String fileName = FILE_NAME;
+	Path path = Paths.get(fileName);
+
+	File file = path.toFile();
+	PrintWriter output = null;
+
+	try {
+	    output = new PrintWriter(new FileOutputStream(file, false));
+	    if (list.isEmpty()) {
+		return;
 	    }
-	    fileInput.close();
-	} else {
-	    try {
-		saveFile.createNewFile();
-	    } catch (IOException e) {
-		System.out.println("Whoops. Error creating new save file.");
+	    for (Task s : list) {
+		output.println(s.getSaveDataString());
 	    }
+	} catch (FileNotFoundException e) {
+	    System.err.println("I AM ERROR!");
+	} finally {
+	    output.close();
 	}
+
     }
 
-    // This method proves that bigger is not always better
     private static void editTask(Scanner userInput, ArrayList<Task> taskList) {
 	if (taskList.isEmpty()) {
 	    System.out.println("Task list empty. No entries to edit.");
@@ -489,7 +506,5 @@ public class TaskListDriver {
 		System.out.println("Please enter a number between 1 and " + taskList.size());
 	    }
 	} while (run);
-
     }
-
 }
