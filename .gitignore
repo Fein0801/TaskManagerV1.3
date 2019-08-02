@@ -1,10 +1,19 @@
-# eclipse stuff
-*.class
-
+# Eclipse
+.classpath
+.project
 .settings/
 
-.project
+# Intellij
+.idea/
+*.iml
+*.iws
 
-.classpath
+# Mac
+.DS_Store
 
-/bin/
+# Maven
+log/
+target/
+
+*.class
+/bin
