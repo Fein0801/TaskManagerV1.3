@@ -1,11 +1,19 @@
-# eclipse stuff
-*.class
-
+# Eclipse
+.classpath
+.project
 .settings/
 
-.project
+# Intellij
+.idea/
+*.iml
+*.iws
 
-.classpath
+# Mac
+.DS_Store
 
-/bin/
-src/co/grandcircus/SaveData.txt
+# Maven
+log/
+target/
+
+*.class
+/bin
