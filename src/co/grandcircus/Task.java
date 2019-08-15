@@ -3,10 +3,14 @@ package co.grandcircus;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-public class Task {
+import org.json.JSONObject;
+import org.json.JSONString;
+
+public class Task implements JSONString {
 
     private static final int MAX_DESCRIPTION_SIZE = 50;
     private static final int MAX_NAME_SIZE = 30;
+
     private boolean completed;
     private String teamMember;
     private LocalDate dueDate;
@@ -166,6 +170,39 @@ public class Task {
 
     public void resetCompletion() {
 	completed = false;
+    }
+
+    @Override
+    public String toJSONString() {
+	JSONObject obj = new JSONObject();
+	obj.put("name", teamMember);
+	obj.put("due date", dueDate.toString());
+	obj.put("description", description);
+	obj.put("completed", completed);
+	return obj.toString();
+    }
+
+    public JSONObject toJSONObject() {
+	JSONObject obj = new JSONObject();
+	obj.put("name", teamMember);
+	obj.put("due date", dueDate.toString());
+	obj.put("description", description);
+	obj.put("completed", completed);
+	return obj;
+    }
+
+    private void setCompleted(boolean completed) {
+	this.completed = completed;
+    }
+
+    public static Task parseJSONObject(JSONObject jason) {
+	Task task = new Task();
+	task.setDueDate(jason.get("due date").toString());
+	boolean completed = Boolean.parseBoolean(jason.get("completed").toString());
+	task.setCompleted(completed);
+	task.setTeamMember(jason.get("name").toString());
+	task.setDescription(jason.get("description").toString());
+	return task;
     }
 
 }

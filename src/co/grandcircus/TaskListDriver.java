@@ -3,10 +3,9 @@ package co.grandcircus;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -15,22 +14,65 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+/**
+ * Task Manager
+ * 
+ * @author Ben Feinstein
+ * @version 1.3.0
+ */
 public class TaskListDriver {
 
-    private static final String FILE_NAME = "SaveData.txt";
+//    private static final String TEXT_FILE_NAME = "SaveData.txt";
+    private static final String JSON_FILE_NAME = "data.json";
 
     public static void main(String[] args) {
 	Scanner userInput = new Scanner(System.in);
-	ArrayList<Task> taskList = new ArrayList<>();
-	try {
-	    taskList = readFromFile();
-	} catch (DateTimeParseException e) {
-	    System.out.println("Could not load save data.");
-	}
+	ArrayList<Task> taskList = parseJSON();
 	runTaskManager(userInput, taskList);
-	writeToFile(taskList);
+	writeToJSONFile(taskList);
 	System.out.println("Goodbye.");
 	userInput.close();
+    }
+
+    private static ArrayList<Task> parseJSON() {
+	ArrayList<Task> list = new ArrayList<>();
+	Path path = Paths.get(JSON_FILE_NAME);
+	File inputFile = path.toFile();
+
+	BufferedReader br = null;
+
+	try {
+	    br = new BufferedReader(new FileReader(inputFile));
+	    String input = "";
+	    StringBuffer data = new StringBuffer();
+
+	    while (input != null) {
+		input = br.readLine();
+		data.append(input);
+	    }
+
+	    JSONObject obj = new JSONObject(data.toString());
+	    JSONArray objArr = obj.getJSONArray("tasks");
+	    JSONObject[] tasksJSON = new JSONObject[objArr.length()];
+
+	    for (int i = 0; i < objArr.length(); i++) {
+		tasksJSON[i] = objArr.getJSONObject(i);
+		Task t = Task.parseJSONObject(tasksJSON[i]);
+
+		if (t != null) {
+		    list.add(t);
+		}
+	    }
+	} catch (FileNotFoundException e) {
+	    System.out.println("Could not find input file " + JSON_FILE_NAME);
+	} catch (IOException e) {
+	    System.out.println("Error reading from " + JSON_FILE_NAME);
+	}
+
+	return list;
     }
 
     private static void runTaskManager(Scanner userInput, ArrayList<Task> taskList) {
@@ -121,6 +163,10 @@ public class TaskListDriver {
     }
 
     private static void printTaskList(ArrayList<Task> list) {
+	while (list.contains(null)) {
+	    list.remove(null);
+	}
+
 	if (list.isEmpty()) {
 	    System.out.println("The task list is empty.");
 	    return;
@@ -232,9 +278,15 @@ public class TaskListDriver {
 
 	boolean run = true;
 	do {
-	    System.out.println("Which task number would you like to delete?");
+	    printTaskList(taskList);
+	    System.out.println("Which task number would you like to delete? (0 to cancel)");
 	    try {
 		int choice = userInput.nextInt();
+		if (choice == 0) {
+		    System.out.println("Cancelled.");
+		    return;
+		}
+
 		Task task = taskList.get(choice - 1);
 
 		String delete = "";
@@ -253,9 +305,9 @@ public class TaskListDriver {
 		    run = false;
 		    System.out.println("Task was not deleted.");
 		}
-
 	    } catch (InputMismatchException e) {
 		System.out.println("Please enter a whole number.");
+		continue; // Infinite loop otherwise
 	    } catch (IndexOutOfBoundsException e) {
 		System.out.println("Please enter a number between 1 and " + taskList.size());
 	    }
@@ -272,6 +324,7 @@ public class TaskListDriver {
 	boolean run = true;
 	do {
 	    System.out.println("Which task number would you like to mark completed?");
+	    printTaskList(taskList);
 	    try {
 		int choice = userInput.nextInt();
 		Task task = taskList.get(choice - 1);
@@ -321,59 +374,6 @@ public class TaskListDriver {
 	System.out.println("\t6. Edit task");
 	System.out.println("\t7. List tasks before date");
 	System.out.println("\t8. Quit");
-    }
-
-    private static ArrayList<Task> readFromFile() {
-	ArrayList<Task> list = new ArrayList<Task>();
-	String fileName = FILE_NAME;
-	Path path = Paths.get(fileName);
-
-	File file = path.toFile();
-
-	BufferedReader br = null;
-	try {
-	    br = new BufferedReader(new FileReader(file));
-	    String line = br.readLine();
-
-	    while (line != null) {
-		Task t = new Task(line);
-		list.add(t);
-
-		line = br.readLine();
-	    }
-	    br.close();
-
-	} catch (FileNotFoundException e) {
-	    System.out.println("error reading from save file");
-	} catch (IOException e) {
-	    System.out.println();
-	}
-
-	return list;
-
-    }
-
-    public static void writeToFile(ArrayList<Task> list) {
-	String fileName = FILE_NAME;
-	Path path = Paths.get(fileName);
-
-	File file = path.toFile();
-	PrintWriter output = null;
-
-	try {
-	    output = new PrintWriter(new FileOutputStream(file, false));
-	    if (list.isEmpty()) {
-		return;
-	    }
-	    for (Task s : list) {
-		output.println(s.getSaveDataString());
-	    }
-	} catch (FileNotFoundException e) {
-	    System.err.println("I AM ERROR!");
-	} finally {
-	    output.close();
-	}
-
     }
 
     private static void editTask(Scanner userInput, ArrayList<Task> taskList) {
@@ -506,5 +506,92 @@ public class TaskListDriver {
 		System.out.println("Please enter a number between 1 and " + taskList.size());
 	    }
 	} while (run);
+    }
+
+//    private static ArrayList<Task> readFromFile() {
+//	ArrayList<Task> list = new ArrayList<Task>();
+//	String fileName = TEXT_FILE_NAME;
+//	Path path = Paths.get(fileName);
+//
+//	File file = path.toFile();
+//
+//	BufferedReader br = null;
+//	try {
+//	    br = new BufferedReader(new FileReader(file));
+//	    String line = br.readLine();
+//
+//	    while (line != null) {
+//		Task t = new Task(line);
+//		if (t != null) {
+//		    list.add(t);
+//		}
+//		line = br.readLine();
+//	    }
+//	    br.close();
+//
+//	} catch (FileNotFoundException e) {
+//	    System.out.println("error reading from save file");
+//	} catch (IOException e) {
+//	    System.out.println();
+//	}
+//
+//	return list;
+//
+//    }
+
+//    private static void writeToFile(ArrayList<Task> list) {
+//	String fileName = TEXT_FILE_NAME;
+//	Path path = Paths.get(fileName);
+//
+//	File file = path.toFile();
+//	PrintWriter output = null;
+//
+//	try {
+//	    output = new PrintWriter(new FileOutputStream(file, false));
+//	    if (list.isEmpty()) {
+//		return;
+//	    }
+//	    for (Task s : list) {
+//		output.println(s.getSaveDataString());
+//	    }
+//	} catch (FileNotFoundException e) {
+//	    System.err.println("I AM ERROR!");
+//	} finally {
+//	    output.close();
+//	}
+//
+//    }
+
+    private static void writeToJSONFile(ArrayList<Task> list) {
+	Path p = Paths.get(JSON_FILE_NAME);
+	File file = p.toFile();
+
+	if (!list.isEmpty()) {
+	    JSONObject allTasks = new JSONObject();
+	    JSONArray jsonList = new JSONArray();
+
+	    try {
+		if (!file.exists()) {
+		    file.createNewFile();
+		}
+
+		for (Task t : list) {
+		    if (t == null) {
+			list.remove(list.indexOf(null));
+		    } else {
+			JSONObject obj = t.toJSONObject();
+			jsonList.put(obj);
+		    }
+		}
+		allTasks.put("tasks", jsonList);
+		Files.write(p, allTasks.toString().getBytes());
+	    } catch (FileNotFoundException e) {
+		System.out.println("Could not find JSON file " + JSON_FILE_NAME);
+	    } catch (NullPointerException e) {
+		System.out.println("Skipped one object when saving to JSON file");
+	    } catch (IOException e) {
+		System.out.println("Error writing to " + JSON_FILE_NAME);
+	    }
+	}
     }
 }

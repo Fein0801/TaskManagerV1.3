@@ -1,5 +1,0 @@
-Ben Feinstein/2019-08-01/Enjoy his birthday/true
-Rusty and Ben/2019-08-02/fee calculator/false
-Natasha and Chris/2019-08-02/RNG for member id/false
-Natasha and Chris/2019-08-02/Regex validation/false
-Natasha/2019-08-02/Whitespace/false
